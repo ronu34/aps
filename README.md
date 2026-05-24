@@ -180,16 +180,16 @@ The package format and APIs may change frequently.
 * [x] Remove packages
 * [x] Local repository support
 * [x] Package search
-* [ ] Dependency handling
+* [x] Dependency handling
 * [ ] Package upgrades
-* [ ] Package verification
+* [x] Package verification
 * [ ] Package signatures
 
 ---
 
 ## Repository System
 
-* [ ] Remote HTTP repositories
+* [x] Remote HTTP repositories
 * [ ] Mirrors
 * [ ] Package metadata cache
 * [ ] Maintainer metadata
