@@ -4,13 +4,14 @@ use std::fs::{self, File};
 use std::io::Read;
 use std::path::Path;
 use tar::Archive;
+use std::os::unix::fs::symlink;
 
 use crate::db;
 use crate::package;
 
 // remove comment when using it actually(use sudo)
-//const INSTALL_DIR: &str = "/opt/aps";
-const INSTALL_DIR: &str = "/tmp/aps_root";
+const INSTALL_DIR: &str = "/opt/aps";
+//const INSTALL_DIR: &str = "/tmp/aps_root";
 
 pub fn install_package(path: &str) -> Result<()> {
     println!("Installing {}", path);
@@ -72,6 +73,33 @@ fn copy_dir_all(src: &str, dst: &str, package: &str) -> Result<()> {
             fs::copy(&src_path, &dst_path)?;
 
             db::add_file(package, dst_path.to_str().unwrap())?;
+
+            // Auto-create symlink for executables in usr/bin
+            let dst_str = dst_path.to_string_lossy();
+
+            if dst_str.starts_with("/opt/aps/usr/bin/") {
+                let binary_name = dst_path
+                    .file_name()
+                    .unwrap()
+                    .to_string_lossy();
+
+                let symlink_path =
+                    format!("/usr/local/bin/{}", binary_name);
+
+                if Path::new(&symlink_path).exists() {
+                    fs::remove_file(&symlink_path)?;
+                }
+
+                symlink(&dst_path, &symlink_path)?;
+
+                db::add_file(package, &symlink_path)?;
+
+                println!(
+                    "Linked {} -> {}",
+                    symlink_path,
+                    dst_path.display()
+                );
+            }
 
             println!("Installed {}", dst_path.display());
         }
